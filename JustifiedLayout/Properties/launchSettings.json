@@ -1,0 +1,10 @@
+{
+    "profiles": {
+        "JustifiedLayout": {
+            "commandName": "MsixPackage"
+        },
+        "JustifiedLayout (Unpackaged)": {
+            "commandName": "Project"
+        }
+    }
+}

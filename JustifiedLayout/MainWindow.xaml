@@ -1,0 +1,59 @@
+<Window
+    x:Class="JustifiedLayout.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:JustifiedLayout"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+    <Grid Margin="50">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <StackPanel Grid.Column="1" Padding="50,0,0,0">
+            <Slider
+                x:Name="HorizontalSpacing"
+                Header="HorizontalSpacing"
+                Maximum="100"
+                Minimum="0"
+                Value="5" />
+            <Slider
+                x:Name="VerticalSpacing"
+                Header="VerticalSpacing"
+                Maximum="100"
+                Minimum="0"
+                Value="5" />
+            <Slider
+                x:Name="RowHeight"
+                Header="RowHeight"
+                Maximum="1000"
+                Minimum="10"
+                Value="200" />
+        </StackPanel>
+        <ScrollViewer Grid.Column="0">
+            <ItemsRepeater ItemsSource="{x:Bind Images}">
+                <DataTemplate x:DataType="local:CountImage">
+                    <Border CornerRadius="4">
+                        <Image Source="{x:Bind Image}" Stretch="UniformToFill" />
+                        <!--<Grid>
+                            <Image Source="{x:Bind Image}" Stretch="UniformToFill" />
+                            <TextBlock
+                                Width="50"
+                                Height="50"
+                                FontSize="20"
+                                Foreground="Red"
+                                Text="{x:Bind Num}" />
+                        </Grid>-->
+                    </Border>
+                </DataTemplate>
+                <ItemsRepeater.Layout>
+                    <local:JustifiedLayout
+                        HorizontalSpacing="{x:Bind HorizontalSpacing.Value, Mode=OneWay}"
+                        RowHeight="{x:Bind RowHeight.Value, Mode=OneWay}"
+                        VerticalSpacing="{x:Bind VerticalSpacing.Value, Mode=OneWay}" />
+                </ItemsRepeater.Layout>
+            </ItemsRepeater>
+        </ScrollViewer>
+    </Grid>
+</Window>
