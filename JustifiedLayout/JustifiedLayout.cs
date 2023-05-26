@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
@@ -41,19 +40,19 @@ public sealed class JustifiedLayout : VirtualizingLayout
         switch (args.Action)
         {
             case NotifyCollectionChangedAction.Add:
-                state.RemoveFromIndex(args.NewStartingIndex);
+                state.ClearMeasureFromIndex(args.NewStartingIndex);
                 break;
             case NotifyCollectionChangedAction.Move:
                 var minIndex = Math.Min(args.NewStartingIndex, args.OldStartingIndex);
-                state.RemoveFromIndex(minIndex);
+                state.ClearMeasureFromIndex(minIndex);
                 state.RecycleElementAt(args.OldStartingIndex);
                 state.RecycleElementAt(args.NewStartingIndex);
                 break;
             case NotifyCollectionChangedAction.Remove:
-                state.RemoveFromIndex(args.OldStartingIndex);
+                state.ClearMeasureFromIndex(args.OldStartingIndex);
                 break;
             case NotifyCollectionChangedAction.Replace:
-                state.RemoveFromIndex(args.NewStartingIndex);
+                state.ClearMeasureFromIndex(args.NewStartingIndex);
                 state.RecycleElementAt(args.NewStartingIndex);
                 break;
             case NotifyCollectionChangedAction.Reset:
@@ -73,18 +72,14 @@ public sealed class JustifiedLayout : VirtualizingLayout
 
         // ReSharper disable once CompareOfFloatsByEqualityOperator
         if (state.AvailableWidth != parentMeasure.Width
+        // ReSharper disable once CompareOfFloatsByEqualityOperator
             || spacingMeasure != state.Spacing)
         {
-            state.ClearAll();
+            state.ClearMeasure();
             state.AvailableWidth = parentMeasure.Width;
             state.Spacing = spacingMeasure;
         }
-        // ReSharper disable once CompareOfFloatsByEqualityOperator
-        if (RowHeight != state.RowHeight)
-        {
-            state.ClearPositions();
-            state.RowHeight = RowHeight;
-        }
+        state.RowHeight = RowHeight;
 
         var realizationBounds = context.RealizationRect;
         Point? nextPosition = new Point();
@@ -95,18 +90,16 @@ public sealed class JustifiedLayout : VirtualizingLayout
             Point currentPosition;
             var item = state.GetItemAt(i);
 
-            if (nextPosition is not null)
+            if (nextPosition is { } nextPos)
             {
-                item.Position = currentPosition = nextPosition.Value;
+                item.Position = currentPosition = nextPos;
                 nextPosition = null;
             }
-            else if (item.Position is not null)
-                currentPosition = item.Position.Value;
+            else if (item.Position is { } pos)
+                currentPosition = pos;
             else
             {
-                currentPosition = state.GetItemAt(i - 1).Position!.Value;
-                currentPosition.Y += RowHeight + spacingMeasure.Height;
-                item.Position = currentPosition;
+                throw new Exception("Unexpected path.");
             }
 
             if (currentPosition.Y + RowHeight < realizationBounds.Top)
@@ -141,7 +134,7 @@ public sealed class JustifiedLayout : VirtualizingLayout
             }
             else if (item.DesiredSize != item.Element!.DesiredSize)
             {
-                state.RemoveFromIndex(i + 1);
+                state.ClearMeasureFromIndex(i + 1);
                 item.DesiredSize = item.Element.DesiredSize;
             }
 
@@ -239,23 +232,15 @@ public sealed class JustifiedLayout : VirtualizingLayout
         // if the last loop is (parentMeasure.Width > currentMeasure.Width) the currentMeasure isn't added to the total so add it here
         // for the last condition it is zeros so adding it will make no difference
         // this way is faster than an if condition in every loop for checking the last item
-        var totalMeasure = new Size
-        {
-            Width = parentMeasure.Width
-        };
-
         // Propagating an infinite size causes a crash. This can happen if the parent is scrollable and infinite in the opposite
         // axis to the panel. Clearing to zero prevents the crash.
-        // This is likely an incorrect use of the control by the developer, however we need stability here so setting a default that wont crash.
-        if (double.IsInfinity(totalMeasure.Width))
+        // This is likely an incorrect use of the control by the developer, however we need stability here so setting a default that won't crash.
+        var totalMeasure = new Size
         {
-            totalMeasure.Width = 0;
-        }
+            Width = double.IsInfinity(parentMeasure.Width) ? 0 : Math.Ceiling(parentMeasure.Width),
+            Height = state.GetHeight()
+        };
 
-        totalMeasure.Height = state.GetHeight();
-
-        totalMeasure.Width = Math.Ceiling(totalMeasure.Width);
-        Task.Delay(1);
         return totalMeasure;
     }
 
@@ -265,6 +250,8 @@ public sealed class JustifiedLayout : VirtualizingLayout
         if (context.ItemCount > 0)
         {
             var realizationBounds = context.RealizationRect;
+            //  var viewHeight = realizationBounds.Height /= 3;
+            //  realizationBounds.Y += viewHeight;
 
             var state = (JustifiedLayoutState)context.LayoutState;
             bool ArrangeItem(JustifiedItem item)
@@ -294,10 +281,7 @@ public sealed class JustifiedLayout : VirtualizingLayout
 
             for (var i = 0; i < context.ItemCount; ++i)
             {
-                if (!ArrangeItem(state.GetItemAt(i)))
-                {
-                    break;
-                }
+                _ = ArrangeItem(state.GetItemAt(i));
             }
         }
 

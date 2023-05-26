@@ -8,8 +8,8 @@
     mc:Ignorable="d">
     <Grid Margin="50">
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*" />
             <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="1" Padding="50,0,0,0">
             <Slider
@@ -30,11 +30,16 @@
                 Maximum="1000"
                 Minimum="10"
                 Value="200" />
+            <TextBlock
+                x:Name="TextBlock"
+                FontSize="20"
+                Foreground="Red" />
         </StackPanel>
-        <ScrollViewer Grid.Column="0">
-            <ItemsRepeater ItemsSource="{x:Bind Images}">
-                <DataTemplate x:DataType="local:CountImage">
-                    <Border CornerRadius="4">
+        <ScrollViewer Grid.Column="0" ViewChanged="UIElement_OnManipulationCompleted">
+            <StackPanel>
+                <ItemsRepeater ItemsSource="{x:Bind Images}">
+                    <DataTemplate x:DataType="local:CountImage">
+                        <!--  TODO: Add Border  -->
                         <Image Source="{x:Bind Image}" Stretch="UniformToFill" />
                         <!--<Grid>
                             <Image Source="{x:Bind Image}" Stretch="UniformToFill" />
@@ -45,15 +50,19 @@
                                 Foreground="Red"
                                 Text="{x:Bind Num}" />
                         </Grid>-->
-                    </Border>
-                </DataTemplate>
-                <ItemsRepeater.Layout>
-                    <local:JustifiedLayout
-                        HorizontalSpacing="{x:Bind HorizontalSpacing.Value, Mode=OneWay}"
-                        RowHeight="{x:Bind RowHeight.Value, Mode=OneWay}"
-                        VerticalSpacing="{x:Bind VerticalSpacing.Value, Mode=OneWay}" />
-                </ItemsRepeater.Layout>
-            </ItemsRepeater>
+                    </DataTemplate>
+                    <ItemsRepeater.Layout>
+                        <local:JustifiedLayout
+                            HorizontalSpacing="{x:Bind HorizontalSpacing.Value, Mode=OneWay}"
+                            RowHeight="{x:Bind RowHeight.Value, Mode=OneWay}"
+                            VerticalSpacing="{x:Bind VerticalSpacing.Value, Mode=OneWay}" />
+                    </ItemsRepeater.Layout>
+                </ItemsRepeater>
+                <ProgressBar
+                    x:Name="ProgressRing"
+                    Margin="50"
+                    IsIndeterminate="True" />
+            </StackPanel>
         </ScrollViewer>
     </Grid>
 </Window>

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.UI.Xaml.Controls;
 using Windows.Foundation;
 
@@ -42,7 +43,7 @@ internal class JustifiedLayoutState
         _items.Clear();
     }
 
-    internal void RemoveFromIndex(int index)
+    internal void ClearMeasureFromIndex(int index)
     {
         if (index >= _items.Count)
         {
@@ -50,25 +51,17 @@ internal class JustifiedLayoutState
             return;
         }
 
-        var numToRemove = _items.Count - index;
-        _items.RemoveRange(index, numToRemove);
-    }
-
-    internal void ClearAll()
-    {
-        foreach (var item in _items)
+        foreach (var item in _items.Skip(index))
         {
-            item.Position = null;
             item.Measure = null;
-            item.DesiredSize = null;
         }
     }
 
-    internal void ClearPositions()
+    internal void ClearMeasure()
     {
         foreach (var item in _items)
         {
-            item.Position = null;
+            item.Measure = null;
         }
     }
 
@@ -84,18 +77,16 @@ internal class JustifiedLayoutState
         for (var i = _items.Count - 1; i >= 0; --i)
         {
             var item = _items[i];
+
             if (item.Position is null)
             {
                 continue;
             }
 
-            if (lastPosition != null)
+            if (lastPosition is not null && lastPosition.Value.Y > item.Position.Value.Y)
             {
-                if (lastPosition.Value.Y > item.Position.Value.Y)
-                {
-                    // This is a row above the last item. Exit and calculate the average
-                    break;
-                }
+                // This is a row above the last item.
+                break;
             }
 
             lastPosition = item.Position;
