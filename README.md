@@ -2,6 +2,8 @@
 
 A virtualizing layout that justifies content for WinUI3.
 
+**Use `RiverFlowLayout` in WindowAppSDK**
+
 It will automatically select the appropriate scaling ratio based on the original size of the content.
 
 ## Build
